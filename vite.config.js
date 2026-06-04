@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/react-refresh';
+import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import tailwindcss from '@tailwindcss/vite'; // <-- 1. Add this import
 
 export default defineConfig({
   plugins: [
+    tailwindcss(), // <-- 2. Add the tailwind compiler initialization here
     react(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -12,9 +14,9 @@ export default defineConfig({
         name: 'Ledgerly Retail Credit Manager',
         short_name: 'Ledgerly',
         description: 'Manage retail storefront credit lines and client ledgers.',
-        theme_color: '#0ea5e9', // Matches your Sky-500 theme color
-        background_color: '#f8fafc', // Matches slate-50 background
-        display: 'standalone', // Hides the browser URL bar on mobile phones
+        theme_color: '#0ea5e9',
+        background_color: '#f8fafc',
+        display: 'standalone',
         orientation: 'portrait',
         icons: [
           {
