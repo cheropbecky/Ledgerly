@@ -27,4 +27,4 @@ Ledgerly is a highly responsive **Progressive Web App (PWA)** and full-stack ret
 ---
 
 
-└── vite.config.js
+
