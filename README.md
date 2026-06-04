@@ -1,11 +1,12 @@
-# Ledgerly  📊📱
+# Ledgerly — PWA 📊📱✨
 
-Ledgerly is a responsive, full-stack retail and credit management solution designed for retail storefront operations. It streamlines store credit issuance, tracks customer payment histories, automates outstanding balance monitoring, and generates financial ledger summaries for seamless daily business administration.
+Ledgerly is a highly responsive **Progressive Web App (PWA)** and full-stack retail credit management solution designed for retail storefront operations. It streamlines store credit issuance, tracks customer payment histories, automates outstanding balance monitoring, and generates financial ledger summaries for seamless daily business administration.
 
 ---
 
 ## 🚀 Key Modules & Capabilities
 
+* **Progressive Web App (PWA) Support:** Built-in capability allowing the application to be installed directly onto a mobile phone home screen, running full-screen without a browser address bar.
 * **User Authentication Firewall:** A secure admin gateway supporting unified Sign-Up and Sign-In pipelines with customizable requirements (compulsory Name, Password, and Phone fields; optional Email backup mappings).
 * **Shop Credit & Debt Dashboard:** An intuitive control panel containing administrative modules to immediately provision and structure customer storefront credit tabs, interest parameters, and target maturity timelines.
 * **Customer Account Management Module:** A central client directory handling new client profile registrations and tracking individual outstanding balance totals.
@@ -25,28 +26,5 @@ Ledgerly is a responsive, full-stack retail and credit management solution desig
 
 ---
 
-## 📁 Repository Directory Structure
 
-```text
-Ledgerly/
-├── public/
-├── src/
-│   ├── components/
-│   │   ├── CustomerForm.jsx
-│   │   ├── CustomerHistoryModal.jsx
-│   │   ├── Navbar.jsx
-│   │   └── PaymentModal.jsx
-│   ├── pages/
-│   │   ├── Customers.jsx
-│   │   ├── Dashboard.jsx
-│   │   ├── Login.jsx
-│   │   ├── Profile.jsx
-│   │   └── Reports.jsx
-│   ├── App.jsx
-│   ├── index.css
-│   ├── main.jsx
-│   └── supabaseClient.js
-├── .env
-├── index.html
-├── package.json
 └── vite.config.js
