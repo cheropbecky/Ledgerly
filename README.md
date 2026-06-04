@@ -1,6 +1,6 @@
-# Ledgerly (BiasharaPro) 📊📱
+# Ledgerly  📊📱
 
-Ledgerly (BiasharaPro) is a responsive, full-stack retail and credit management solution designed for retail storefront operations. It streamlines store credit issuance, tracks customer payment histories, automates outstanding balance monitoring, and generates financial ledger summaries for seamless daily business administration.
+Ledgerly is a responsive, full-stack retail and credit management solution designed for retail storefront operations. It streamlines store credit issuance, tracks customer payment histories, automates outstanding balance monitoring, and generates financial ledger summaries for seamless daily business administration.
 
 ---
 
