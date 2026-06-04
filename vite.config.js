@@ -1,10 +1,10 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/react-refresh';
+import react from '@vitejs/plugin-react'; // <-- Changed this line
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   plugins: [
-    react(),
+    react(), // This will now run perfectly
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
@@ -12,9 +12,9 @@ export default defineConfig({
         name: 'Ledgerly Retail Credit Manager',
         short_name: 'Ledgerly',
         description: 'Manage retail storefront credit lines and client ledgers.',
-        theme_color: '#0ea5e9', // Matches your Sky-500 theme color
-        background_color: '#f8fafc', // Matches slate-50 background
-        display: 'standalone', // Hides the browser URL bar on mobile phones
+        theme_color: '#0ea5e9',
+        background_color: '#f8fafc',
+        display: 'standalone',
         orientation: 'portrait',
         icons: [
           {
