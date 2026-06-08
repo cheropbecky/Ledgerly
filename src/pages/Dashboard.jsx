@@ -7,6 +7,7 @@ export default function Dashboard() {
   const [activeLoans, setActiveLoans] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [loanAmount, setLoanAmount] = useState('');
+  const [itemName, setItemName] = useState(''); // Tracking specific inventory item details
   const [dueDate, setDueDate] = useState('');
   const [activePaymentLoan, setActivePaymentLoan] = useState(null);
 
@@ -30,13 +31,21 @@ export default function Dashboard() {
     const amount = parseFloat(loanAmount);
     if (!selectedCustomerId || isNaN(amount) || !dueDate) return;
 
+    // Persisting loan parameters along with advanced commodity item references
     const { error } = await supabase
       .from('loans')
-      .insert([{ customer_id: selectedCustomerId, principal_amount: amount, balance_remaining: amount, due_date: dueDate }]);
+      .insert([{ 
+        customer_id: selectedCustomerId, 
+        principal_amount: amount, 
+        balance_remaining: amount, 
+        item_name: itemName || 'Retail Goods', // Saves item description 
+        due_date: dueDate,
+        issue_date: new Date().toISOString().split('T')[0] // Captures exact issue date
+      }]);
 
     if (error) alert(error.message);
     else {
-      setLoanAmount(''); setDueDate(''); setSelectedCustomerId('');
+      setLoanAmount(''); setItemName(''); setDueDate(''); setSelectedCustomerId('');
       fetchDashboardData();
     }
   };
@@ -47,15 +56,16 @@ export default function Dashboard() {
       <div className="relative rounded-2xl overflow-hidden bg-slate-900 text-white h-44 flex items-center px-6 md:px-10 shadow-lg">
         <img src="https://images.unsplash.com/photo-1601597111158-2fceff292cdc?auto=format&fit=crop&q=80&w=1000" alt="Retail Store Storefront" className="absolute inset-0 w-full h-full object-cover opacity-25 object-center" />
         <div className="relative z-10 space-y-1">
-          <h2 className="text-xl md:text-3xl font-extrabold tracking-tight">Biashara Credit Operations</h2>
-          <p className="text-xs md:text-sm text-sky-200/80">Issue immediate store credit tabs and manage running asset deficits[cite: 59].</p>
+          <h2 className="text-xl md:text-3xl font-extrabold tracking-tight">Biashara Credit & Loan Operations</h2>
+          <p className="text-xs md:text-sm text-sky-200/80">Issue immediate store credit lines, trace commodities advanced, and monitor deficits.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Module: Record Loan Transaction */}
+        {/* Module: Record Loan Transaction with Itemization fields */}
         <form onSubmit={handleIssueLoan} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
-          <h3 className="font-bold text-slate-800 text-base">Issue Store Credit</h3>
+          <h3 className="font-bold text-slate-800 text-base">Issue Store Credit / Goods</h3>
+          
           <div>
             <label className="block text-xs font-bold text-slate-400 mb-1">SELECT CUSTOMER</label>
             <select value={selectedCustomerId} onChange={e => setSelectedCustomerId(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-sky-500">
@@ -63,14 +73,22 @@ export default function Dashboard() {
               {customers.map(c => <option key={c.customer_id} value={c.customer_id}>{c.first_name} {c.last_name}</option>)}
             </select>
           </div>
+
           <div>
-            <label className="block text-xs font-bold text-slate-400 mb-1">CREDIT AMOUNT (KSh)</label>
+            <label className="block text-xs font-bold text-slate-400 mb-1">ITEMS TAKEN ON CREDIT</label>
+            <input type="text" placeholder="e.g. Sugar, 2kg Flour, Cooking Oil" value={itemName} onChange={e => setItemName(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-sky-500" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-400 mb-1">CREDIT VALUE AMOUNT (KSh)</label>
             <input type="number" placeholder="Principal Balance" value={loanAmount} onChange={e => setLoanAmount(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-sky-500" />
           </div>
+
           <div>
             <label className="block text-xs font-bold text-slate-400 mb-1">MATURITY/DUE DATE</label>
             <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-sky-500" />
           </div>
+
           <button type="submit" className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow-md shadow-sky-50">
             Issue Credit Line
           </button>
@@ -80,15 +98,17 @@ export default function Dashboard() {
         <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div>
             <h3 className="font-bold text-slate-800 text-base mb-3">Active Customer Credit Lines</h3>
-            <div className="divide-y divide-slate-50 max-h-60 overflow-y-auto pr-1">
+            <div className="divide-y divide-slate-50 max-h-80 overflow-y-auto pr-1">
               {activeLoans.length === 0 ? (
                 <p className="text-sm text-slate-400 pt-4 text-center">No open active debt positions registered.</p>
               ) : (
                 activeLoans.map(l => (
                   <div key={l.loan_id} className="flex justify-between items-center py-3 text-sm">
-                    <div>
+                    <div className="space-y-0.5">
                       <p className="font-bold text-slate-700">{l.customers?.first_name} {l.customers?.last_name}</p>
-                      <p className="text-xs text-slate-400">Due: {l.due_date}</p>
+                      {/* Sub-label displaying specific item inventory information */}
+                      <p className="text-xs text-sky-600 font-semibold">Item: {l.item_name || 'General Retail Merchandise'}</p>
+                      <p className="text-[11px] text-slate-400">Due: {new Date(l.due_date).toLocaleDateString()}</p>
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="font-bold text-slate-800">KSh {l.balance_remaining}</span>

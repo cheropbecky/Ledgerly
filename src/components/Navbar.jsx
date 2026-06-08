@@ -6,7 +6,7 @@ export default function Navbar({ setCurrentPage, currentPage }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
-     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
+     { id: 'dashboard', name: 'Loan', icon: LayoutDashboard }, // Changed name from 'Dashboard' to 'Loan'
      { id: 'customers', name: 'Customers', icon: Users },
      { id: 'reports', name: 'Reports', icon: FileText },
      { id: 'profile', name: 'Business Profile', icon: Settings }, 

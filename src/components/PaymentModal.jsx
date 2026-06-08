@@ -42,10 +42,30 @@ export default function PaymentModal({ loan, onClose, onPaymentSuccess }) {
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
       <div className="bg-white p-6 rounded-2xl max-w-sm w-full border shadow-xl space-y-4">
         <h3 className="font-extrabold text-lg text-slate-800">Process Repayment</h3>
-        <p className="text-xs text-slate-400">Recording for: <span className="font-bold text-slate-700">{loan.customers?.first_name} {loan.customers?.last_name}</span></p>
-        <div className="p-3 bg-slate-50 rounded-xl text-sm flex justify-between">
-          <span className="text-slate-500">Unresolved Balance:</span>
-          <span className="font-bold text-slate-800">KSh {loan.balance_remaining}</span>
+        
+        <div>
+          <p className="text-xs text-slate-400">Recording for: <span className="font-bold text-slate-700">{loan.customers?.first_name} {loan.customers?.last_name}</span></p>
+          {/* Display Item details pulled from the loan object */}
+          <p className="text-[11px] text-sky-600 bg-sky-50 font-semibold px-2 py-1 rounded-md mt-1 inline-block">
+            Item: {loan.item_name || 'Retail Credit Line'}
+          </p>
+        </div>
+
+        {/* Enhanced summary showing the timeline details */}
+        <div className="p-3 bg-slate-50 rounded-xl text-xs space-y-1.5 border border-slate-100">
+          <div className="flex justify-between text-slate-500">
+            <span>Taken On:</span>
+            <span className="font-medium text-slate-700">{loan.issue_date ? new Date(loan.issue_date).toLocaleDateString() : 'N/A'}</span>
+          </div>
+          <div className="flex justify-between text-slate-500">
+            <span>Payment Due:</span>
+            <span className="font-medium text-rose-600">{loan.due_date ? new Date(loan.due_date).toLocaleDateString() : 'N/A'}</span>
+          </div>
+          <div className="h-px bg-slate-200 my-1"></div>
+          <div className="flex justify-between text-sm">
+            <span className="text-slate-500 font-medium">Unresolved Balance:</span>
+            <span className="font-bold text-slate-800">KSh {loan.balance_remaining}</span>
+          </div>
         </div>
         
         <form onSubmit={handlePayment} className="space-y-4">
