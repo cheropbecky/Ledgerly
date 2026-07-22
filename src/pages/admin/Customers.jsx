@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 
 export default function Customers() {
@@ -7,6 +7,7 @@ export default function Customers() {
   const [loansByCustomer, setLoansByCustomer] = useState({});
   const [expanded, setExpanded] = useState(null);
   const [modal, setModal] = useState(null); // { type: 'credit'|'payment', customerId, loanId? }
+  const [customerModal, setCustomerModal] = useState(null); // { mode: 'add'|'edit', customer? }
   const [loading, setLoading] = useState(true);
 
   async function loadAll() {
@@ -43,17 +44,31 @@ export default function Customers() {
       .reduce((sum, l) => sum + Number(l.balance_remaining), 0);
   }
 
+  async function handleDeleteLoan(loan) {
+    if (!confirm(`Delete this credit entry (${loan.item_name})? This also removes its payment history.`))
+      return;
+    const { error } = await supabase.from("loans").delete().eq("loan_id", loan.loan_id);
+    if (error) alert(error.message);
+    else loadAll();
+  }
+
   return (
     <div className="p-5 sm:p-8">
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between mb-1 flex-wrap gap-3">
         <h1 className="font-display text-2xl text-[var(--color-ink)]">Customers</h1>
+        <button
+          onClick={() => setCustomerModal({ mode: "add" })}
+          className="flex items-center gap-1.5 text-sm px-3.5 py-2 rounded-md bg-[var(--color-ochre)] text-white hover:bg-[var(--color-ochre-dark)]"
+        >
+          <Plus size={16} /> Add customer
+        </button>
       </div>
       <p className="text-sm text-[var(--color-ink-soft)] mb-8">
         Every account's debt position, at a glance.
       </p>
 
       <div className="bg-[var(--color-paper-card)] border border-[var(--color-rule)] rounded-lg overflow-x-auto">
-        <table className="w-full text-sm min-w-[560px]">
+        <table className="w-full text-sm min-w-[620px]">
           <thead>
             <tr className="text-left text-xs text-[var(--color-ink-soft)] border-b border-[var(--color-rule)]">
               <th className="px-5 py-3 font-medium">Customer</th>
@@ -99,7 +114,17 @@ export default function Customers() {
                       KSh {bal.toLocaleString("en-KE")}
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2 flex-wrap">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCustomerModal({ mode: "edit", customer: c });
+                          }}
+                          className="p-1.5 rounded border border-[var(--color-rule)] hover:border-[var(--color-ochre)]"
+                          aria-label="Edit customer"
+                        >
+                          <Pencil size={14} />
+                        </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -125,7 +150,10 @@ export default function Customers() {
                   {isOpen && (
                     <tr>
                       <td colSpan={4} className="px-5 pb-4 bg-black/[0.015]">
-                        <LoanHistory loans={loansByCustomer[c.id] || []} />
+                        <LoanHistory
+                          loans={loansByCustomer[c.id] || []}
+                          onDelete={handleDeleteLoan}
+                        />
                       </td>
                     </tr>
                   )}
@@ -148,11 +176,22 @@ export default function Customers() {
           }}
         />
       )}
+
+      {customerModal && (
+        <CustomerModal
+          customerModal={customerModal}
+          onClose={() => setCustomerModal(null)}
+          onSaved={() => {
+            setCustomerModal(null);
+            loadAll();
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function LoanHistory({ loans }) {
+function LoanHistory({ loans, onDelete }) {
   if (loans.length === 0) {
     return <p className="text-xs text-[var(--color-ink-soft)] py-2">No credit history yet.</p>;
   }
@@ -165,6 +204,7 @@ function LoanHistory({ loans }) {
           <th className="py-1 font-medium text-right">Balance</th>
           <th className="py-1 font-medium text-right">Status</th>
           <th className="py-1 font-medium text-right">Due</th>
+          <th className="py-1 font-medium text-right">Delete</th>
         </tr>
       </thead>
       <tbody>
@@ -189,10 +229,141 @@ function LoanHistory({ loans }) {
             <td className="py-1.5 text-right text-[var(--color-ink-soft)]">
               {new Date(l.due_date).toLocaleDateString()}
             </td>
+            <td className="py-1.5 text-right">
+              <button
+                onClick={() => onDelete(l)}
+                className="p-1 rounded hover:text-[var(--color-debit)]"
+                aria-label="Delete entry"
+              >
+                <Trash2 size={13} />
+              </button>
+            </td>
           </tr>
         ))}
       </tbody>
     </table>
+  );
+}
+
+function CustomerModal({ customerModal, onClose, onSaved }) {
+  const editing = customerModal.mode === "edit" ? customerModal.customer : null;
+  const [form, setForm] = useState({
+    firstName: editing?.first_name || "",
+    lastName: editing?.last_name || "",
+    phone: editing?.phone || "",
+    email: editing?.email || "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSave() {
+    if (!form.firstName || !form.lastName) {
+      setError("First and last name are required.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+
+    if (editing) {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          first_name: form.firstName,
+          last_name: form.lastName,
+          phone: form.phone || null,
+          email: form.email || null,
+        })
+        .eq("id", editing.id);
+      if (error) setError(error.message);
+      else onSaved();
+    } else {
+      const { error } = await supabase.from("profiles").insert({
+        first_name: form.firstName,
+        last_name: form.lastName,
+        phone: form.phone || null,
+        email: form.email || null,
+        role: "customer",
+      });
+      if (error) setError(error.message);
+      else onSaved();
+    }
+    setSaving(false);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+      <div className="bg-[var(--color-paper-card)] rounded-lg w-full max-w-sm p-6 border border-[var(--color-rule)]">
+        <h2 className="font-display text-lg text-[var(--color-ink)] mb-4">
+          {editing ? "Edit customer" : "Add customer"}
+        </h2>
+
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              placeholder="First name"
+              value={form.firstName}
+              onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
+              className="input"
+            />
+            <input
+              placeholder="Last name"
+              value={form.lastName}
+              onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
+              className="input"
+            />
+          </div>
+          <input
+            placeholder="Phone"
+            value={form.phone}
+            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+            className="input"
+          />
+          <input
+            placeholder="Email (optional)"
+            value={form.email}
+            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+            className="input"
+          />
+        </div>
+
+        {!editing && (
+          <p className="text-xs text-[var(--color-ink-soft)] mt-3">
+            This creates a customer record for you to manage credit against. They won't be able
+            to sign in themselves unless they later create their own account with this same
+            name.
+          </p>
+        )}
+
+        {error && <p className="text-xs text-[var(--color-debit)] mt-3">{error}</p>}
+
+        <div className="flex gap-2 mt-5">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2 rounded-md border border-[var(--color-rule)] text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 py-2 rounded-md bg-[var(--color-ochre)] text-white text-sm disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        .input {
+          width: 100%;
+          border: 1px solid var(--color-rule);
+          border-radius: 0.375rem;
+          padding: 0.5rem 0.75rem;
+          background: white;
+          font-size: 0.875rem;
+        }
+      `}</style>
+    </div>
   );
 }
 
