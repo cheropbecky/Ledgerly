@@ -1,1 +1,74 @@
 @import "tailwindcss";
+
+@theme {
+  /* --- Ledgerly design tokens --- */
+  --color-ink: #1b2a4a;         /* primary dark, "fountain-pen ink" */
+  --color-ink-soft: #33456b;
+  --color-paper: #efe6d6;       /* warm ledger paper */
+  --color-paper-card: #f8f3e9;  /* lighter card surface */
+  --color-rule: #c9bfa9;        /* hairline ledger rules */
+  --color-ochre: #c98a2d;       /* accent — stamps, highlights */
+  --color-ochre-dark: #a56f1f;
+  --color-credit: #3f6b4f;      /* money in / paid, ledger green */
+  --color-debit: #a23e2e;       /* money out / overdue, ledger red */
+
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
+}
+
+body {
+  background-color: var(--color-paper);
+  font-family: var(--font-body);
+  color: var(--color-ink);
+}
+
+/* Faint horizontal ledger rules behind tables — the signature texture */
+.ledger-lines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 43px,
+    var(--color-rule) 43px,
+    var(--color-rule) 44px
+  );
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* subtle ink-stamp entrance for the balance figure */
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.15) rotate(-1deg);
+    filter: blur(2px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.98) rotate(0.2deg);
+    filter: blur(0);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+.animate-stamp {
+  animation: stamp-in 0.5s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-stamp {
+    animation: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ochre);
+  outline-offset: 2px;
+}

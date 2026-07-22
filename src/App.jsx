@@ -1,36 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Customers from './pages/Customers';
-import Reports from './pages/Reports';
-import Profile from './pages/Profile';
-import Navbar from './components/Navbar';
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
+import ProtectedRoute from "./routes/ProtectedRoute";
+
+import Login from "./components/Login";
+import AdminLayout from "./components/AdminLayout";
+import CustomerLayout from "./components/CustomerLayout";
+
+import Dashboard from "./pages/admin/Dashboard";
+import Customers from "./pages/admin/Customers";
+import Requests from "./pages/admin/Requests";
+import Inventory from "./pages/admin/Inventory";
+import CustomerPortal from "./pages/customer/CustomerPortal";
+
+function RoleRedirect() {
+  const { role, loading } = useAuth();
+  if (loading) return null;
+  return <Navigate to={role === "admin" ? "/admin" : "/portal"} replace />;
+}
 
 export default function App() {
-  const [session, setSession] = useState(null);
-  const [currentPage, setCurrentPage] = useState('dashboard');
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (!session) return <Login />;
-
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans">
-      <Navbar setCurrentPage={setCurrentPage} currentPage={currentPage} />
-      {/* Responsive Main Panel */}
-      <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 md:ml-64 min-h-screen transition-all">
-        {currentPage === 'dashboard' && <Dashboard />}
-        {currentPage === 'customers' && <Customers />}
-        {currentPage === 'reports' && <Reports />}
-        {currentPage === 'profile' && <Profile />}
-      </main>
-    </div>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/redirect" element={<RoleRedirect />} />
+
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="customers" element={<Customers />} />
+        <Route path="requests" element={<Requests />} />
+        <Route path="inventory" element={<Inventory />} />
+      </Route>
+
+      <Route
+        path="/portal"
+        element={
+          <ProtectedRoute requireRole="customer">
+            <CustomerLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<CustomerPortal />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/redirect" replace />} />
+    </Routes>
   );
 }
