@@ -52,6 +52,19 @@ export default function Customers() {
     else loadAll();
   }
 
+  async function handleDeleteCustomer(customer) {
+    const bal = balanceFor(customer.id);
+    const warning =
+      bal > 0
+        ? `${customer.first_name} ${customer.last_name} still owes KSh ${bal.toLocaleString()}. Deleting them removes this customer AND all their credit/payment/request history permanently. Continue?`
+        : `Delete ${customer.first_name} ${customer.last_name} and all their history permanently? This cannot be undone.`;
+    if (!confirm(warning)) return;
+
+    const { error } = await supabase.from("profiles").delete().eq("id", customer.id);
+    if (error) alert(error.message);
+    else loadAll();
+  }
+
   return (
     <div className="p-5 sm:p-8">
       <div className="flex items-center justify-between mb-1 flex-wrap gap-3">
@@ -124,6 +137,16 @@ export default function Customers() {
                           aria-label="Edit customer"
                         >
                           <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteCustomer(c);
+                          }}
+                          className="p-1.5 rounded border border-[var(--color-rule)] hover:border-[var(--color-debit)] hover:text-[var(--color-debit)]"
+                          aria-label="Delete customer"
+                        >
+                          <Trash2 size={14} />
                         </button>
                         <button
                           onClick={(e) => {
